@@ -39,6 +39,7 @@
       touch-action: none;
       display: block;
       margin: 30px auto;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
     }
     #score {
       font-size: 1.5em;
@@ -47,6 +48,8 @@
       padding: 10px 20px;
       border-radius: 5px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      animation: scorePopup 0.3s ease-out;
+      transition: all 0.3s ease;
     }
     /* Responsive adjustments for smaller screens */
     @media (max-width: 600px) {
@@ -56,6 +59,15 @@
       #score {
         font-size: 1.2em;
       }
+    }
+    /* Animation for score display */
+    @keyframes scorePopup {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .perfect-score {
+        color: #00ff00 !important;
+        text-shadow: 0 0 10px #00ff00 !important;
     }
   </style>
 </head>
@@ -118,8 +130,17 @@
       e.preventDefault();
       const pos = getCanvasCoordinates(e);
       points.push(pos);
+      
+      // Draw line
       ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = `hsl(${(Date.now() / 20) % 360}, 70%, 60%)`; // Rainbow effect
+      ctx.lineWidth = 3;
       ctx.stroke();
+      
+      // Create particles
+      if (Math.random() > 0.5) {
+          createParticle(e.clientX, e.clientY, ctx.strokeStyle);
+      }
     }
 
     // Finish drawing on mouseup/touchend/touchcancel/mouseout.
@@ -266,6 +287,27 @@
       const radius = radiusSum / n;
 
       return { cx, cy, radius };
+    }
+
+    function createParticle(x, y, color) {
+        const particle = document.createElement('div');
+        particle.style.position = 'absolute';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.width = '4px';
+        particle.style.height = '4px';
+        particle.style.background = color;
+        particle.style.borderRadius = '50%';
+        particle.style.pointerEvents = 'none';
+        particle.style.transition = 'all 0.5s ease';
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+            particle.style.transform = `translate(${(Math.random() - 0.5) * 50}px, ${(Math.random() - 0.5) * 50}px)`;
+            particle.style.opacity = '0';
+        }, 10);
+
+        setTimeout(() => particle.remove(), 500);
     }
   </script>
 </body>
