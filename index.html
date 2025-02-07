@@ -21,6 +21,7 @@
       align-items: center;
       min-height: 100vh;
       padding-bottom: 30px;
+      overflow: hidden; /* Hide scrollbars caused by particles */
     }
     h1 {
       margin-top: 30px;
@@ -69,10 +70,23 @@
         color: #00ff00 !important;
         text-shadow: 0 0 10px #00ff00 !important;
     }
+    /* Add a pulsating glow effect */
+    .glow {
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+      to {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Circle Perfection</h1>
+  <h1 class="glow">Circle Perfection</h1>
   <!-- The canvas will be resized dynamically -->
   <canvas id="canvas"></canvas>
   <div id="score">Draw a circle!</div>
@@ -80,6 +94,7 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
 
     // Resize the canvas to use a larger portion of the screen.
     function resizeCanvas() {
@@ -139,7 +154,7 @@
       
       // Create particles
       if (Math.random() > 0.5) {
-          createParticle(e.clientX, e.clientY, ctx.strokeStyle);
+          createParticle(pos.x, pos.y, ctx.strokeStyle); // Use canvas coordinates
       }
     }
 
@@ -201,13 +216,13 @@
     // Evaluate how "perfect" the drawn circle is.
     function evaluateCircle() {
       if (points.length < 3) {
-        document.getElementById('score').innerText = 'Draw more to create a circle!';
+        scoreDisplay.innerText = 'Draw more to create a circle!';
         return;
       }
       
       // Check if the drawing forms a closed loop
       if (!isCircleClosed(points)) {
-        document.getElementById('score').innerText = 
+        scoreDisplay.innerText = 
             'Almost there! Try to connect the ends of your circle';
         
         // Still calculate and show a score for incomplete circles
@@ -234,8 +249,16 @@
       let perfection = 100 * (1 - Math.pow(avgError / tolerance, 2));
       perfection = Math.max(0, Math.min(100, perfection));
 
-      document.getElementById('score').innerText =
-          'Circle Perfectness: ' + perfection.toFixed(2) + '%';
+      scoreDisplay.innerText = 'Circle Perfectness: ' + perfection.toFixed(2) + '%';
+
+      // Add class for perfect score
+      if (perfection >= 95) {
+          scoreDisplay.classList.add('perfect-score');
+          scoreDisplay.innerText = 'Perfect Circle! ' + perfection.toFixed(2) + '%';
+          // Add some celebratory animation or sound here
+      } else {
+          scoreDisplay.classList.remove('perfect-score');
+      }
 
       // Draw the best-fit circle in red for visual feedback
       ctx.strokeStyle = 'red';
