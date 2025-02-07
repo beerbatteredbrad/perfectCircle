@@ -39,7 +39,6 @@
 
     // Resize the canvas to use a larger portion of the screen.
     function resizeCanvas() {
-      // For example, 90% of the viewport width and 70% of the viewport height.
       canvas.width = window.innerWidth * 0.9;
       canvas.height = window.innerHeight * 0.7;
     }
@@ -112,9 +111,7 @@
     canvas.addEventListener('touchend', endDrawing);
     canvas.addEventListener('touchcancel', endDrawing);
 
-    // New: Check if the drawn path is "closed" using a relative threshold.
-    // We compute the bounding box of the drawn points and then require that
-    // the distance between the first and last point is within a fraction of the diagonal.
+    // Check if the drawn path is "closed" using a relative threshold.
     function isCircleClosed(points, fraction = 0.15) {
       if (points.length < 2) return false;
       const start = points[0];
@@ -148,7 +145,7 @@
       // Get best-fit circle parameters using the fitCircle function.
       const circle = fitCircle(points);
 
-      // Calculate average error: the difference between each point's distance from the computed center and the computed radius.
+      // Calculate the average error: the difference between each point's distance from the computed center and the computed radius.
       let errorSum = 0;
       points.forEach(point => {
         const dist = Math.hypot(point.x - circle.cx, point.y - circle.cy);
@@ -156,11 +153,11 @@
       });
       const avgError = errorSum / points.length;
 
-      // Convert error to a "perfectness" percentage.
-      // Define a tolerance (this value can be adjusted).
+      // Use a quadratic scoring function to be more forgiving:
+      // When avgError is 0, score = 100, and as avgError approaches tolerance, score decreases following a quadratic curve.
       const tolerance = 10;
-      let perfection = Math.max(0, 100 * (1 - avgError / tolerance));
-      perfection = Math.min(100, perfection);
+      let perfection = 100 * (1 - Math.pow(avgError / tolerance, 2));
+      perfection = Math.max(0, Math.min(100, perfection));  // Clamp between 0 and 100
 
       document.getElementById('score').innerText =
         'Circle Perfectness: ' + perfection.toFixed(2) + '%';
