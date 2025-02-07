@@ -143,40 +143,64 @@
     canvas.addEventListener('touchcancel', endDrawing);
 
     // Check if the drawn path is "closed" using a relative threshold.
-    function isCircleClosed(points, fraction = 0.15) {
+    function isCircleClosed(points, fraction = 0.25) { // Increased from 0.15 to 0.25
       if (points.length < 2) return false;
       const start = points[0];
       const end = points[points.length - 1];
+      
+      // If the endpoints are close enough, connect them
       const distance = Math.hypot(end.x - start.x, end.y - start.y);
       
-      // Compute the bounding box of the drawn points.
+      // Compute the bounding box
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       points.forEach(p => {
-        if (p.x < minX) minX = p.x;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.y > maxY) maxY = p.y;
+          if (p.x < minX) minX = p.x;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.y > maxY) maxY = p.y;
       });
       const diag = Math.hypot(maxX - minX, maxY - minY);
       
-      return distance <= diag * fraction;
+      // If the circle is nearly closed, auto-close it
+      if (distance <= diag * fraction) {
+          // Add interpolated points to close the gap
+          const steps = 5;
+          for (let i = 1; i <= steps; i++) {
+              points.push({
+                  x: end.x + (start.x - end.x) * (i / steps),
+                  y: end.y + (start.y - end.y) * (i / steps)
+              });
+          }
+          return true;
+      }
+      
+      return false;
     }
 
     // Evaluate how "perfect" the drawn circle is.
     function evaluateCircle() {
-      if (points.length < 3) return; // Not enough points to define a circle.
+      if (points.length < 3) {
+        document.getElementById('score').innerText = 'Draw more to create a circle!';
+        return;
+      }
       
-      // Check if the drawing forms a closed loop.
+      // Check if the drawing forms a closed loop
       if (!isCircleClosed(points)) {
-        document.getElementById('score').innerText =
-          'Incomplete Circle. Please complete your circle!';
+        document.getElementById('score').innerText = 
+            'Almost there! Try to connect the ends of your circle';
+        
+        // Still calculate and show a score for incomplete circles
+        const circle = fitCircle(points);
+        calculateScore(circle);
         return;
       }
 
-      // Get best-fit circle parameters using the fitCircle function.
       const circle = fitCircle(points);
+      calculateScore(circle);
+    }
 
-      // Calculate the average error: the difference between each point's distance from the computed center and the computed radius.
+    // New helper function to calculate and display the score
+    function calculateScore(circle) {
       let errorSum = 0;
       points.forEach(point => {
         const dist = Math.hypot(point.x - circle.cx, point.y - circle.cy);
@@ -184,20 +208,20 @@
       });
       const avgError = errorSum / points.length;
 
-      // Use a quadratic scoring function to be more forgiving.
-      const tolerance = 10;
+      // More forgiving tolerance
+      const tolerance = 15; // Increased from 10
       let perfection = 100 * (1 - Math.pow(avgError / tolerance, 2));
-      perfection = Math.max(0, Math.min(100, perfection));  // Clamp between 0 and 100
+      perfection = Math.max(0, Math.min(100, perfection));
 
       document.getElementById('score').innerText =
-        'Circle Perfectness: ' + perfection.toFixed(2) + '%';
+          'Circle Perfectness: ' + perfection.toFixed(2) + '%';
 
-      // Draw the best-fit circle in red for visual feedback.
+      // Draw the best-fit circle in red for visual feedback
       ctx.strokeStyle = 'red';
       ctx.beginPath();
       ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2 * Math.PI);
       ctx.stroke();
-      ctx.strokeStyle = 'black'; // Reset stroke style for future drawings.
+      ctx.strokeStyle = 'black';
     }
 
     // Simple circle fit using the Kasa method.
