@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Circle Perfectness Game</title>
+  <style>
+    /* Reset default margins and paddings */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    /* Style the canvas so it uses more of the screen */
+    canvas {
+      border: 1px solid #000;
+      touch-action: none; /* Prevent touch scrolling */
+      display: block;
+      margin: 20px auto;
+    }
+    #score {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Draw a Circle!</h1>
+  <!-- The canvas will be resized dynamically -->
+  <canvas id="canvas"></canvas>
+  <p id="score"></p>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Resize the canvas to use a larger portion of the screen.
+    function resizeCanvas() {
+      // For example, 90% of the viewport width and 70% of the viewport height.
+      canvas.width = window.innerWidth * 0.9;
+      canvas.height = window.innerHeight * 0.7;
+    }
+    // Set the initial size and update on window resize.
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let drawing = false;
+    let points = [];
+
+    // Clear the canvas.
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Helper: Get mouse or touch coordinates relative to the canvas.
+    function getCanvasCoordinates(e) {
+      const rect = canvas.getBoundingClientRect();
+      let x, y;
+      if (e.touches && e.touches.length > 0) {
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+      } else {
+        x = e.clientX - rect.left;
+        y = e.clientY - rect.top;
+      }
+      return { x, y };
+    }
+
+    // Start drawing on mousedown/touchstart.
+    function startDrawing(e) {
+      // Clear any previous drawing when starting a new one.
+      clearCanvas();
+      e.preventDefault();
+      drawing = true;
+      points = []; // Reset points array.
+      const pos = getCanvasCoordinates(e);
+      points.push(pos);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    // Capture drawing on mousemove/touchmove.
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const pos = getCanvasCoordinates(e);
+      points.push(pos);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    // Finish drawing on mouseup/touchend/touchcancel/mouseout.
+    function endDrawing(e) {
+      if (!drawing) return;
+      drawing = false;
+      ctx.closePath();
+      evaluateCircle();
+    }
+
+    // Add mouse events.
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDrawing);
+    canvas.addEventListener('mouseout', endDrawing);
+
+    // Add touch events.
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', endDrawing);
+    canvas.addEventListener('touchcancel', endDrawing);
+
+    // New: Check if the drawn path is "closed" using a relative threshold.
+    // We compute the bounding box of the drawn points and then require that
+    // the distance between the first and last point is within a fraction of the diagonal.
+    function isCircleClosed(points, fraction = 0.15) {
+      if (points.length < 2) return false;
+      const start = points[0];
+      const end = points[points.length - 1];
+      const distance = Math.hypot(end.x - start.x, end.y - start.y);
+      
+      // Compute the bounding box of the drawn points.
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      points.forEach(p => {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      });
+      const diag = Math.hypot(maxX - minX, maxY - minY);
+      
+      return distance <= diag * fraction;
+    }
+
+    // Evaluate how "perfect" the drawn circle is.
+    function evaluateCircle() {
+      if (points.length < 3) return; // Not enough points to define a circle.
+      
+      // Check if the drawing forms a closed loop.
+      if (!isCircleClosed(points)) {
+        document.getElementById('score').innerText =
+          'Incomplete Circle. Please complete your circle!';
+        return;
+      }
+
+      // Get best-fit circle parameters using the fitCircle function.
+      const circle = fitCircle(points);
+
+      // Calculate average error: the difference between each point's distance from the computed center and the computed radius.
+      let errorSum = 0;
+      points.forEach(point => {
+        const dist = Math.hypot(point.x - circle.cx, point.y - circle.cy);
+        errorSum += Math.abs(dist - circle.radius);
+      });
+      const avgError = errorSum / points.length;
+
+      // Convert error to a "perfectness" percentage.
+      // Define a tolerance (this value can be adjusted).
+      const tolerance = 10;
+      let perfection = Math.max(0, 100 * (1 - avgError / tolerance));
+      perfection = Math.min(100, perfection);
+
+      document.getElementById('score').innerText =
+        'Circle Perfectness: ' + perfection.toFixed(2) + '%';
+
+      // Draw the best-fit circle in red for visual feedback.
+      ctx.strokeStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.strokeStyle = 'black'; // Reset stroke style for future drawings.
+    }
+
+    // Simple circle fit using the Kasa method.
+    function fitCircle(points) {
+      let sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0, sumXY = 0;
+      let sumX3 = 0, sumY3 = 0, sumX2Y = 0, sumXY2 = 0;
+      const n = points.length;
+
+      for (let i = 0; i < n; i++) {
+        const x = points[i].x;
+        const y = points[i].y;
+        const x2 = x * x;
+        const y2 = y * y;
+
+        sumX += x;
+        sumY += y;
+        sumX2 += x2;
+        sumY2 += y2;
+        sumXY += x * y;
+        sumX3 += x2 * x;
+        sumY3 += y2 * y;
+        sumX2Y += x2 * y;
+        sumXY2 += x * y2;
+      }
+
+      // Compute parameters for the circle.
+      const C = n * sumX2 - sumX * sumX;
+      const D = n * sumXY - sumX * sumY;
+      const E = n * (sumX3 + sumXY2) - (sumX2 + sumY2) * sumX;
+      const G = n * sumY2 - sumY * sumY;
+      const H = n * (sumX2Y + sumY3) - (sumX2 + sumY2) * sumY;
+      const denominator = 2 * (C * G - D * D);
+
+      const cx = (G * E - D * H) / denominator;
+      const cy = (C * H - D * E) / denominator;
+
+      // Compute the average radius from all points to the computed center.
+      let radiusSum = 0;
+      for (let i = 0; i < n; i++) {
+        radiusSum += Math.hypot(points[i].x - cx, points[i].y - cy);
+      }
+      const radius = radiusSum / n;
+
+      return { cx, cy, radius };
+    }
+  </script>
+</body>
+</html>
