@@ -2,36 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Circle Perfectness Game</title>
+  <title>Circle Perfection Game</title>
+  <!-- Import a modern font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset default margins and paddings */
+    /* Reset and base styles */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
     body {
-      text-align: center;
-      font-family: Arial, sans-serif;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-bottom: 30px;
     }
-    /* Style the canvas so it uses more of the screen */
+    h1 {
+      margin-top: 30px;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #e0e0e0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    /* Style the canvas to look modern and sleek */
     canvas {
-      border: 1px solid #000;
-      touch-action: none; /* Prevent touch scrolling */
+      border: none;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      touch-action: none;
       display: block;
-      margin: 20px auto;
+      margin: 30px auto;
     }
     #score {
-      font-size: 1.2em;
-      margin-top: 10px;
+      font-size: 1.5em;
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    /* Responsive adjustments for smaller screens */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2em;
+      }
+      #score {
+        font-size: 1.2em;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Draw a Circle!</h1>
+  <h1>Circle Perfection</h1>
   <!-- The canvas will be resized dynamically -->
   <canvas id="canvas"></canvas>
-  <p id="score"></p>
+  <div id="score">Draw a circle!</div>
 
   <script>
     const canvas = document.getElementById('canvas');
@@ -70,7 +102,6 @@
 
     // Start drawing on mousedown/touchstart.
     function startDrawing(e) {
-      // Clear any previous drawing when starting a new one.
       clearCanvas();
       e.preventDefault();
       drawing = true;
@@ -153,8 +184,7 @@
       });
       const avgError = errorSum / points.length;
 
-      // Use a quadratic scoring function to be more forgiving:
-      // When avgError is 0, score = 100, and as avgError approaches tolerance, score decreases following a quadratic curve.
+      // Use a quadratic scoring function to be more forgiving.
       const tolerance = 10;
       let perfection = 100 * (1 - Math.pow(avgError / tolerance, 2));
       perfection = Math.max(0, Math.min(100, perfection));  // Clamp between 0 and 100
