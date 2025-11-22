@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Circle Perfection Game</title>
   <!-- Import a modern font from Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     /* Reset and base styles */
     * {
@@ -13,107 +13,265 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
-      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #050505;
+      background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      color: #0ff;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding-bottom: 30px;
-      overflow: hidden; /* Hide scrollbars caused by particles */
+      overflow: hidden;
     }
     h1 {
-      margin-top: 30px;
-      font-size: 2.5em;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #e0e0e0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-    }
-    /* Style the canvas to look modern and sleek */
-    canvas {
-      border: none;
-      border-radius: 10px;
-      background-color: #fff;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      touch-action: none;
-      display: block;
-      margin: 30px auto;
-      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-    }
-    #score {
-      font-size: 1.5em;
       margin-top: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px 20px;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      animation: scorePopup 0.3s ease-out;
-      transition: all 0.3s ease;
+      font-size: 3em;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 
+        0 0 5px #0ff,
+        0 0 10px #0ff,
+        0 0 20px #0ff;
+      z-index: 10;
     }
-    /* Responsive adjustments for smaller screens */
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2em;
-      }
-      #score {
-        font-size: 1.2em;
-      }
-    }
-    /* Animation for score display */
-    @keyframes scorePopup {
-        0% { transform: scale(0.8); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    .perfect-score {
-        color: #00ff00 !important;
-        text-shadow: 0 0 10px #00ff00 !important;
-    }
-    /* Add a pulsating glow effect */
-    .glow {
-      animation: glow 2s infinite alternate;
+    
+    /* UI Container */
+    #ui-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    @keyframes glow {
-      from {
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-      }
-      to {
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
-      }
+    /* Controls */
+    .controls {
+      margin-top: 10px;
+      pointer-events: auto;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #0ff;
+      color: #0ff;
+      padding: 10px 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      box-shadow: 0 0 5px #0ff;
+    }
+
+    button:hover {
+      background: #0ff;
+      color: #000;
+      box-shadow: 0 0 15px #0ff;
+    }
+
+    button.active {
+      background: #0ff;
+      color: #000;
+      box-shadow: 0 0 15px #0ff;
+    }
+
+    /* Canvas */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+    }
+
+    #score {
+      margin-top: auto;
+      margin-bottom: 50px;
+      font-size: 2em;
+      text-shadow: 0 0 10px #0ff;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    /* Leaderboard */
+    #leaderboard {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #0ff;
+      padding: 15px;
+      color: #fff;
+      pointer-events: auto;
+      z-index: 20;
+      max-width: 250px;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+    #leaderboard h3 {
+      color: #0ff;
+      border-bottom: 1px solid #0ff;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #leaderboard ol {
+      padding-left: 20px;
+      font-family: 'Roboto', sans-serif;
+    }
+    #leaderboard li {
+      margin-bottom: 5px;
+    }
+
+    .perfect-score {
+        color: #f0f !important;
+        text-shadow: 0 0 10px #f0f, 0 0 20px #f0f !important;
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 5px #0ff; }
+      50% { box-shadow: 0 0 20px #0ff; }
+      100% { box-shadow: 0 0 5px #0ff; }
     }
   </style>
 </head>
 <body>
-  <h1 class="glow">Circle Perfection</h1>
-  <!-- The canvas will be resized dynamically -->
+  <div id="ui-container">
+    <h1>Neon Circle</h1>
+    <div class="controls">
+      <button id="btn-free" class="active" onclick="setMode('free')">Free Draw</button>
+      <button id="btn-target" onclick="setMode('target')">Target Mode</button>
+      <button id="btn-hard" onclick="toggleHardMode()">Hard Mode: OFF</button>
+    </div>
+    <div id="score">Draw a circle!</div>
+  </div>
+  
+  <div id="leaderboard">
+    <h3>Top Scores</h3>
+    <ol id="score-list">
+      <li>No scores yet</li>
+    </ol>
+  </div>
+
   <canvas id="canvas"></canvas>
-  <div id="score">Draw a circle!</div>
 
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const scoreDisplay = document.getElementById('score');
+    const scoreList = document.getElementById('score-list');
 
-    // Resize the canvas to use a larger portion of the screen.
-    function resizeCanvas() {
-      canvas.width = window.innerWidth * 0.9;
-      canvas.height = window.innerHeight * 0.7;
-    }
-    // Set the initial size and update on window resize.
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
+    // Game State
+    let currentMode = 'free'; // 'free' or 'target'
+    let isHardMode = false;
     let drawing = false;
     let points = [];
+    let targetCircle = null;
+    let obstacles = [];
+    let highScores = JSON.parse(localStorage.getItem('perfectCircleScores')) || [];
 
-    // Clear the canvas.
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Audio Context
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    // Resize the canvas to fill the screen
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initGame(); // Re-init game elements on resize
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Mode Switching
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btn-free').classList.toggle('active', mode === 'free');
+      document.getElementById('btn-target').classList.toggle('active', mode === 'target');
+      initGame();
     }
 
-    // Helper: Get mouse or touch coordinates relative to the canvas.
+    function toggleHardMode() {
+      isHardMode = !isHardMode;
+      document.getElementById('btn-hard').innerText = `Hard Mode: ${isHardMode ? 'ON' : 'OFF'}`;
+      document.getElementById('btn-hard').classList.toggle('active', isHardMode);
+      initGame();
+    }
+
+    // Initialize Game Round
+    function initGame() {
+      points = [];
+      scoreDisplay.innerText = currentMode === 'target' ? 'Trace the blue circle!' : 'Draw a circle!';
+      scoreDisplay.className = ''; // Reset classes
+      
+      // Generate Target
+      if (currentMode === 'target') {
+        const minDim = Math.min(canvas.width, canvas.height);
+        const r = (minDim * 0.15) + Math.random() * (minDim * 0.2);
+        const x = Math.random() * (canvas.width - 2 * r) + r;
+        const y = Math.random() * (canvas.height - 2 * r) + r;
+        targetCircle = { cx: x, cy: y, radius: r };
+      } else {
+        targetCircle = null;
+      }
+
+      // Generate Obstacles
+      obstacles = [];
+      if (isHardMode) {
+        const numObstacles = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < numObstacles; i++) {
+          obstacles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 30 + Math.random() * 50
+          });
+        }
+      }
+
+      drawGameElements();
+      updateLeaderboard();
+    }
+
+    // Draw Static Elements (Target, Obstacles)
+    function drawGameElements() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Target
+      if (targetCircle) {
+        ctx.beginPath();
+        ctx.arc(targetCircle.cx, targetCircle.cy, targetCircle.radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 10]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Draw Obstacles
+      if (obstacles.length > 0) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        obstacles.forEach(obs => {
+          ctx.beginPath();
+          ctx.arc(obs.x, obs.y, obs.radius, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#f00';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+      }
+    }
+
+    // Input Handling
     function getCanvasCoordinates(e) {
       const rect = canvas.getBoundingClientRect();
       let x, y;
@@ -127,67 +285,76 @@
       return { x, y };
     }
 
-    // Start drawing on mousedown/touchstart.
     function startDrawing(e) {
-      clearCanvas();
       e.preventDefault();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
       drawing = true;
-      points = []; // Reset points array.
+      points = [];
+      drawGameElements(); // Clear previous drawing but keep elements
+      
       const pos = getCanvasCoordinates(e);
       points.push(pos);
       ctx.beginPath();
       ctx.moveTo(pos.x, pos.y);
+      
+      playSound('start');
     }
 
-    // Capture drawing on mousemove/touchmove.
     function draw(e) {
       if (!drawing) return;
       e.preventDefault();
       const pos = getCanvasCoordinates(e);
       points.push(pos);
       
-      // Draw line
+      // Check Collision
+      if (isHardMode && checkCollision(pos.x, pos.y)) {
+        failGame("Hit an obstacle!");
+        return;
+      }
+
+      // Draw Line
       ctx.lineTo(pos.x, pos.y);
-      ctx.strokeStyle = `hsl(${(Date.now() / 20) % 360}, 70%, 60%)`; // Rainbow effect
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = `hsl(${(Date.now() / 10) % 360}, 100%, 50%)`;
+      ctx.lineWidth = 4;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = ctx.strokeStyle;
       ctx.stroke();
       
-      // Create particles
-      if (Math.random() > 0.5) {
-          createParticle(pos.x, pos.y, ctx.strokeStyle); // Use canvas coordinates
-      }
+      // Audio Feedback (Pitch based on speed or progress could go here)
+      // For now, just a simple effect
     }
 
-    // Finish drawing on mouseup/touchend/touchcancel/mouseout.
     function endDrawing(e) {
       if (!drawing) return;
       drawing = false;
       ctx.closePath();
       evaluateCircle();
+      playSound('end');
     }
 
-    // Add mouse events.
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', endDrawing);
-    canvas.addEventListener('mouseout', endDrawing);
+    function checkCollision(x, y) {
+      return obstacles.some(obs => {
+        const dist = Math.hypot(x - obs.x, y - obs.y);
+        return dist < obs.radius;
+      });
+    }
 
-    // Add touch events.
-    canvas.addEventListener('touchstart', startDrawing);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', endDrawing);
-    canvas.addEventListener('touchcancel', endDrawing);
+    function failGame(reason) {
+      drawing = false;
+      scoreDisplay.innerText = reason;
+      scoreDisplay.style.color = '#f00';
+      playSound('fail');
+    }
 
-    // Check if the drawn path is "closed" using a relative threshold.
-    function isCircleClosed(points, fraction = 0.25) { // Increased from 0.15 to 0.25
-      if (points.length < 2) return false;
+    // Evaluation Logic
+    function isCircleClosed(points, fraction = 0.25) {
+      if (points.length < 10) return false; // Need enough points
       const start = points[0];
       const end = points[points.length - 1];
-      
-      // If the endpoints are close enough, connect them
       const distance = Math.hypot(end.x - start.x, end.y - start.y);
       
-      // Compute the bounding box
+      // Bounding box diagonal
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       points.forEach(p => {
           if (p.x < minX) minX = p.x;
@@ -197,78 +364,77 @@
       });
       const diag = Math.hypot(maxX - minX, maxY - minY);
       
-      // If the circle is nearly closed, auto-close it
-      if (distance <= diag * fraction) {
-          // Add interpolated points to close the gap
-          const steps = 5;
-          for (let i = 1; i <= steps; i++) {
-              points.push({
-                  x: end.x + (start.x - end.x) * (i / steps),
-                  y: end.y + (start.y - end.y) * (i / steps)
-              });
-          }
-          return true;
-      }
-      
-      return false;
+      return distance <= diag * fraction;
     }
 
-    // Evaluate how "perfect" the drawn circle is.
     function evaluateCircle() {
-      if (points.length < 3) {
-        scoreDisplay.innerText = 'Draw more to create a circle!';
+      if (points.length < 10) {
+        scoreDisplay.innerText = 'Too short!';
         return;
       }
       
-      // Check if the drawing forms a closed loop
       if (!isCircleClosed(points)) {
-        scoreDisplay.innerText = 
-            'Almost there! Try to connect the ends of your circle';
-        
-        // Still calculate and show a score for incomplete circles
-        const circle = fitCircle(points);
-        calculateScore(circle);
+        scoreDisplay.innerText = 'Close the circle!';
         return;
       }
 
-      const circle = fitCircle(points);
-      calculateScore(circle);
+      let circle, score;
+
+      if (currentMode === 'target') {
+        // Compare against the target circle
+        circle = targetCircle;
+        score = calculateScore(circle, points);
+      } else {
+        // Fit best circle
+        circle = fitCircle(points);
+        score = calculateScore(circle, points);
+        
+        // Visual feedback for best fit
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      displayScore(score);
+      saveScore(score);
     }
 
-    // New helper function to calculate and display the score
-    function calculateScore(circle) {
+    function calculateScore(circle, points) {
       let errorSum = 0;
       points.forEach(point => {
         const dist = Math.hypot(point.x - circle.cx, point.y - circle.cy);
         errorSum += Math.abs(dist - circle.radius);
       });
       const avgError = errorSum / points.length;
-
-      // More forgiving tolerance
-      const tolerance = 15; // Increased from 10
+      
+      // Tolerance
+      const tolerance = currentMode === 'target' ? 20 : 15; 
       let perfection = 100 * (1 - Math.pow(avgError / tolerance, 2));
-      perfection = Math.max(0, Math.min(100, perfection));
-
-      scoreDisplay.innerText = 'Circle Perfectness: ' + perfection.toFixed(2) + '%';
-
-      // Add class for perfect score
-      if (perfection >= 95) {
-          scoreDisplay.classList.add('perfect-score');
-          scoreDisplay.innerText = 'Perfect Circle! ' + perfection.toFixed(2) + '%';
-          // Add some celebratory animation or sound here
-      } else {
-          scoreDisplay.classList.remove('perfect-score');
-      }
-
-      // Draw the best-fit circle in red for visual feedback
-      ctx.strokeStyle = 'red';
-      ctx.beginPath();
-      ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2 * Math.PI);
-      ctx.stroke();
-      ctx.strokeStyle = 'black';
+      return Math.max(0, Math.min(100, perfection));
     }
 
-    // Simple circle fit using the Kasa method.
+    function displayScore(score) {
+      const formatted = score.toFixed(1) + '%';
+      scoreDisplay.innerText = formatted;
+      scoreDisplay.className = ''; // Reset
+      
+      if (score >= 95) {
+        scoreDisplay.classList.add('perfect-score');
+        scoreDisplay.innerText = 'PERFECT! ' + formatted;
+        playSound('success');
+        createParticles(canvas.width/2, canvas.height/2, '#f0f');
+      } else if (score >= 80) {
+        scoreDisplay.style.color = '#0f0';
+      } else {
+        scoreDisplay.style.color = '#fff';
+      }
+    }
+
+    // Kasa Method for Circle Fit
     function fitCircle(points) {
       let sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0, sumXY = 0;
       let sumX3 = 0, sumY3 = 0, sumX2Y = 0, sumXY2 = 0;
@@ -291,7 +457,6 @@
         sumXY2 += x * y2;
       }
 
-      // Compute parameters for the circle.
       const C = n * sumX2 - sumX * sumX;
       const D = n * sumXY - sumX * sumY;
       const E = n * (sumX3 + sumXY2) - (sumX2 + sumY2) * sumX;
@@ -299,10 +464,11 @@
       const H = n * (sumX2Y + sumY3) - (sumX2 + sumY2) * sumY;
       const denominator = 2 * (C * G - D * D);
 
+      if (Math.abs(denominator) < 1e-6) return { cx: 0, cy: 0, radius: 0 }; // Collinear
+
       const cx = (G * E - D * H) / denominator;
       const cy = (C * H - D * E) / denominator;
 
-      // Compute the average radius from all points to the computed center.
       let radiusSum = 0;
       for (let i = 0; i < n; i++) {
         radiusSum += Math.hypot(points[i].x - cx, points[i].y - cy);
@@ -312,26 +478,121 @@
       return { cx, cy, radius };
     }
 
-    function createParticle(x, y, color) {
-        const particle = document.createElement('div');
-        particle.style.position = 'absolute';
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        particle.style.width = '4px';
-        particle.style.height = '4px';
-        particle.style.background = color;
-        particle.style.borderRadius = '50%';
-        particle.style.pointerEvents = 'none';
-        particle.style.transition = 'all 0.5s ease';
-        document.body.appendChild(particle);
-
-        setTimeout(() => {
-            particle.style.transform = `translate(${(Math.random() - 0.5) * 50}px, ${(Math.random() - 0.5) * 50}px)`;
-            particle.style.opacity = '0';
-        }, 10);
-
-        setTimeout(() => particle.remove(), 500);
+    // Leaderboard Logic
+    function saveScore(score) {
+      const entry = {
+        score: parseFloat(score.toFixed(1)),
+        date: new Date().toLocaleDateString(),
+        mode: currentMode + (isHardMode ? ' (Hard)' : '')
+      };
+      highScores.push(entry);
+      highScores.sort((a, b) => b.score - a.score);
+      highScores = highScores.slice(0, 5); // Keep top 5
+      localStorage.setItem('perfectCircleScores', JSON.stringify(highScores));
+      updateLeaderboard();
     }
+
+    function updateLeaderboard() {
+      scoreList.innerHTML = '';
+      if (highScores.length === 0) {
+        scoreList.innerHTML = '<li>No scores yet</li>';
+        return;
+      }
+      highScores.forEach(s => {
+        const li = document.createElement('li');
+        li.innerText = `${s.score}% - ${s.mode}`;
+        scoreList.appendChild(li);
+      });
+    }
+
+    // Audio System (Simple Oscillator)
+    function playSound(type) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      
+      if (type === 'start') {
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'end') {
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'success') {
+        // Major chord arpeggio
+        [440, 554, 659, 880].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0.1, now + i*0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.3);
+            o.start(now + i*0.1);
+            o.stop(now + i*0.1 + 0.3);
+        });
+      } else if (type === 'fail') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+    }
+
+    // Particles
+    function createParticles(x, y, color) {
+        for(let i=0; i<20; i++) {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 10px ${color}`;
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            particle.style.transition = 'all 1s ease-out';
+            document.body.appendChild(particle);
+
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 50 + Math.random() * 100;
+            
+            setTimeout(() => {
+                particle.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+                particle.style.opacity = '0';
+            }, 10);
+
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+
+    // Event Listeners
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDrawing);
+    canvas.addEventListener('mouseout', endDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', endDrawing);
+    canvas.addEventListener('touchcancel', endDrawing);
+
+    // Init
+    resizeCanvas();
   </script>
 </body>
 </html>
